@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Player</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            text-align: center;
+        }
+
+        input {
+            width: 75%;
+            padding: 10px;
+        }
+
+        button {
+            padding: 10px 15px;
+        }
+
+        video {
+            width: 100%;
+            margin-top: 20px;
+            background: black;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>MP4 Player</h2>
+
+    <input type="text" id="videoUrl" placeholder="Paste MP4 URL here">
+    <button onclick="loadVideo()">Play</button>
+
+    <video id="player" controls autoplay></video>
+
+    <script>
+        const player = document.getElementById("player");
+        const input = document.getElementById("videoUrl");
+
+        function loadVideo() {
+            const url = input.value.trim();
+            if (!url) return;
+
+            player.src = url;
+            player.load();
+
+            player.play().catch(() => {
+                console.log("Autoplay blocked by browser.");
+            });
+        }
+
+        // Auto-load from ?video=
+        const params = new URLSearchParams(window.location.search);
+        const autoVideo = params.get("video");
+
+        if (autoVideo) {
+            input.value = autoVideo;
+            loadVideo();
+        }
+    </script>
+
+</body>
+</html>
