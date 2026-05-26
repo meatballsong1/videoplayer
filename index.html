@@ -1,22 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Video Player</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP4 Video Player</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 900px;
             margin: 40px auto;
             text-align: center;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
         }
 
         input {
             width: 75%;
             padding: 10px;
+            font-size: 16px;
         }
 
         button {
             padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
         }
 
         video {
@@ -30,10 +41,10 @@
 
     <h2>MP4 Player</h2>
 
-    <input type="text" id="videoUrl" placeholder="Paste MP4 URL here">
+    <input type="text" id="videoUrl" placeholder="Paste MP4 link here">
     <button onclick="loadVideo()">Play</button>
 
-    <video id="player" controls autoplay></video>
+    <video id="player" controls autoplay muted playsinline preload="auto"></video>
 
     <script>
         const player = document.getElementById("player");
@@ -43,22 +54,36 @@
             const url = input.value.trim();
             if (!url) return;
 
-            player.src = url;
+            // Stop previous video cleanly
+            player.pause();
+            player.removeAttribute("src");
             player.load();
 
-            player.play().catch(() => {
-                console.log("Autoplay blocked by browser.");
+            // Set new source
+            player.src = url;
+            player.muted = true; // required for autoplay
+            player.load();
+
+            player.play().catch(err => {
+                console.log("Autoplay blocked:", err);
             });
         }
 
-        // Auto-load from ?video=
+        // Auto-load from URL parameter: ?video=
         const params = new URLSearchParams(window.location.search);
         const autoVideo = params.get("video");
 
         if (autoVideo) {
-            input.value = autoVideo;
-            loadVideo();
+            window.addEventListener("load", () => {
+                input.value = autoVideo;
+                loadVideo();
+            });
         }
+
+        // Optional: first click unlocks unmuted playback
+        document.addEventListener("click", () => {
+            player.muted = false;
+        }, { once: true });
     </script>
 
 </body>
