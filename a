@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Video Player</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        video, iframe {
+            width: 100%;
+            margin-top: 20px;
+            height: 500px;
+            background: black;
+            border: none;
+        }
+
+        #urlDisplay {
+            font-size: 14px;
+            word-break: break-all;
+            margin-top: 10px;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Hardcoded Video Player</h2>
+
+<div id="urlDisplay"></div>
+
+<!-- Players -->
+<video id="videoPlayer" controls autoplay muted playsinline style="display:none;"></video>
+<iframe id="iframePlayer" allowfullscreen allow="autoplay" style="display:none;"></iframe>
+
+<script>
+
+const VIDEO_URL = "https://anonmp4.help/embed/pVRgUlFVGwbahU1";
+
+
+const videoPlayer = document.getElementById("videoPlayer");
+const iframePlayer = document.getElementById("iframePlayer");
+const urlDisplay = document.getElementById("urlDisplay");
+
+// show URL on page
+urlDisplay.textContent = "Loaded URL: " + VIDEO_URL;
+
+// reset function
+function resetPlayers() {
+    videoPlayer.pause();
+    videoPlayer.removeAttribute("src");
+    videoPlayer.style.display = "none";
+
+    iframePlayer.src = "";
+    iframePlayer.style.display = "none";
+}
+
+// detection
+function isMega(url) {
+    return url.includes("mega.nz");
+}
+
+function isAnonEmbed(url) {
+    return url.includes("anonmp4.help/embed");
+}
+
+function isMp4(url) {
+    return url.split("?")[0].toLowerCase().endsWith(".mp4");
+}
+
+// loader
+function loadVideo(url) {
+    resetPlayers();
+
+    if (isAnonEmbed(url)) {
+        iframePlayer.src = url;
+        iframePlayer.style.display = "block";
+        return;
+    }
+
+    if (isMega(url)) {
+        iframePlayer.src = url.replace("/file/", "/embed/");
+        iframePlayer.style.display = "block";
+        return;
+    }
+
+    if (isMp4(url)) {
+        videoPlayer.style.display = "block";
+        videoPlayer.src = url;
+        videoPlayer.muted = true;
+        videoPlayer.load();
+
+        videoPlayer.play().catch(err => {
+            console.log("Autoplay blocked:", err);
+        });
+
+        return;
+    }
+
+    alert("Unsupported URL type");
+}
+
+// auto-run on load
+window.addEventListener("load", () => {
+    loadVideo(VIDEO_URL);
+});
+</script>
+
+</body>
+</html>
