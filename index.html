@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MP4 Video Player</title>
+    <title>Smart Video Router Player</title>
 
     <style>
         body {
@@ -15,7 +14,7 @@
         }
 
         h2 {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         input {
@@ -30,61 +29,107 @@
             cursor: pointer;
         }
 
-        video {
+        video, iframe {
             width: 100%;
             margin-top: 20px;
+            height: 500px;
             background: black;
+            border: none;
         }
     </style>
 </head>
 <body>
 
-    <h2>MP4 Player</h2>
+<h2>Smart Video Router Player</h2>
 
-    <input type="text" id="videoUrl" placeholder="Paste MP4 link here">
-    <button onclick="loadVideo()">Play</button>
+<input id="videoUrl" placeholder="Paste MP4 / MEGA / anon embed link">
+<button onclick="loadVideo()">Play</button>
 
-    <video id="player" controls autoplay muted playsinline preload="auto"></video>
+<!-- MP4 PLAYER -->
+<video id="videoPlayer" controls autoplay muted playsinline style="display:none;"></video>
 
-    <script>
-        const player = document.getElementById("player");
-        const input = document.getElementById("videoUrl");
+<!-- IFRAME PLAYER -->
+<iframe id="iframePlayer" allowfullscreen allow="autoplay" style="display:none;"></iframe>
 
-        function loadVideo() {
-            const url = input.value.trim();
-            if (!url) return;
+<script>
+const input = document.getElementById("videoUrl");
+const videoPlayer = document.getElementById("videoPlayer");
+const iframePlayer = document.getElementById("iframePlayer");
 
-            // Stop previous video cleanly
-            player.pause();
-            player.removeAttribute("src");
-            player.load();
+function resetPlayers() {
+    videoPlayer.pause();
+    videoPlayer.removeAttribute("src");
+    videoPlayer.style.display = "none";
 
-            // Set new source
-            player.src = url;
-            player.muted = true; // required for autoplay
-            player.load();
+    iframePlayer.src = "";
+    iframePlayer.style.display = "none";
+}
 
-            player.play().catch(err => {
-                console.log("Autoplay blocked:", err);
-            });
-        }
+// Detect MEGA
+function isMega(url) {
+    return url.includes("mega.nz");
+}
 
-        // Auto-load from URL parameter: ?video=
-        const params = new URLSearchParams(window.location.search);
-        const autoVideo = params.get("video");
+// Detect anon embed
+function isAnonEmbed(url) {
+    return url.includes("anonmp4.help/embed");
+}
 
-        if (autoVideo) {
-            window.addEventListener("load", () => {
-                input.value = autoVideo;
-                loadVideo();
-            });
-        }
+// Detect direct MP4
+function isMp4(url) {
+    return url.split("?")[0].toLowerCase().endsWith(".mp4");
+}
 
-        // Optional: first click unlocks unmuted playback
-        document.addEventListener("click", () => {
-            player.muted = false;
-        }, { once: true });
-    </script>
+function loadVideo() {
+    const url = input.value.trim();
+    if (!url) return;
+
+    resetPlayers();
+
+    console.log("Loading URL:", url);
+
+    // 1. ANON EMBED (iframe)
+    if (isAnonEmbed(url)) {
+        iframePlayer.src = url;
+        iframePlayer.style.display = "block";
+        return;
+    }
+
+    // 2. MEGA (iframe)
+    if (isMega(url)) {
+        iframePlayer.src = url.replace("/file/", "/embed/");
+        iframePlayer.style.display = "block";
+        return;
+    }
+
+    // 3. MP4 (video tag)
+    if (isMp4(url)) {
+        videoPlayer.style.display = "block";
+        videoPlayer.src = url;
+        videoPlayer.muted = true;
+        videoPlayer.load();
+
+        videoPlayer.play().catch(err => {
+            console.log("Autoplay blocked:", err);
+        });
+
+        return;
+    }
+
+    alert("Unsupported link type");
+}
+
+// Auto-load from ?video=
+const params = new URLSearchParams(window.location.search);
+const autoVideo = params.get("video");
+
+if (autoVideo) {
+    window.addEventListener("load", () => {
+        input.value = autoVideo;
+        loadVideo();
+    });
+}
+</script>
 
 </body>
 </html>
